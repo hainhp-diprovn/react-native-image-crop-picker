@@ -53,6 +53,11 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 
 
+import android.content.ContentResolver;
+import android.webkit.MimeTypeMap;
+import android.graphics.Bitmap;
+import android.provider.MediaStore;
+import java.io.ByteArrayOutputStream;
 
 class PickerModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
@@ -754,8 +759,24 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             configureCropperColors(options);
         }
 
+        ContentResolver cr = this.reactContext.getContentResolver();
+
+        String extension = getExtension(activity, uri).toLowerCase();
+        Uri newuri = null;
+        if (extension.equals("webp")) {
+            try {
+                Bitmap bmp = MediaStore.Images.Media.getBitmap(cr, uri);
+                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                bmp.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+                String path = MediaStore.Images.Media.insertImage(cr, bmp, "Jpeg image", null);
+                newuri =  Uri.parse(path);
+            } catch (IOException e) {
+//                Log.e("error", e.toString());
+            }
+       }
+
         UCrop uCrop = UCrop
-                .of(uri, Uri.fromFile(new File(this.getTmpDir(activity), UUID.randomUUID().toString() + ".jpg")))
+                .of(newuri == null ? uri : newuri, Uri.fromFile(new File(this.getTmpDir(activity), UUID.randomUUID().toString() + ".jpg")))
                 .withOptions(options);
 
         if (width > 0 && height > 0) {
