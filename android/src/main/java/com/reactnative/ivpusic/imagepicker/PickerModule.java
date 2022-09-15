@@ -766,10 +766,11 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         if (extension.equals("webp")) {
             try {
                 Bitmap bmp = MediaStore.Images.Media.getBitmap(cr, uri);
-                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                bmp.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-                String path = MediaStore.Images.Media.insertImage(cr, bmp, "Jpeg image", null);
-                newuri =  Uri.parse(path);
+                // ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                // bmp.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+                // String path = MediaStore.Images.Media.insertImage(cr, bmp, "Jpeg image", null);
+                // newuri =  Uri.parse(path);
+                newuri =  bitmapToUriConverter(activity, bmp);
             } catch (IOException e) {
 //                Log.e("error", e.toString());
             }
@@ -785,6 +786,59 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
 
         uCrop.start(activity);
     }
+
+public Uri bitmapToUriConverter(Activity activity, Bitmap mBitmap) {
+    Uri uri = null;
+    try {
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        // Calculate inSampleSize
+        options.inSampleSize = calculateInSampleSize(options, 100, 100);
+
+        // Decode bitmap with inSampleSize set
+        options.inJustDecodeBounds = false;
+        // Bitmap newBitmap = Bitmap.createScaledBitmap(mBitmap, 200, 200,
+        //         true);
+        File file = new File(activity.getFilesDir(), "Image"
+                + UUID.randomUUID().toString() + ".jpeg");
+        FileOutputStream out = activity.openFileOutput(file.getName(),
+                Context.MODE_PRIVATE);
+        mBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+        out.flush();
+        out.close();
+        //get absolute path
+        String realPath = file.getAbsolutePath();
+        File f = new File(realPath);
+        uri = Uri.fromFile(f);
+
+    } catch (Exception e) {
+        Log.e("Your Error Message", e.getMessage());
+    }
+    return uri;
+}
+
+
+public static int calculateInSampleSize(
+        BitmapFactory.Options options, int reqWidth, int reqHeight) {
+    // Raw height and width of image
+    final int height = options.outHeight;
+    final int width = options.outWidth;
+    int inSampleSize = 1;
+
+    if (height > reqHeight || width > reqWidth) {
+
+        final int halfHeight = height / 2;
+        final int halfWidth = width / 2;
+
+        // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+        // height and width larger than the requested height and width.
+        while ((halfHeight / inSampleSize) >= reqHeight
+                && (halfWidth / inSampleSize) >= reqWidth) {
+            inSampleSize *= 2;
+        }
+    }
+
+    return inSampleSize;
+}
 
     private void imagePickerResult(Activity activity, final int requestCode, final int resultCode, final Intent data) {
         if (resultCode == Activity.RESULT_CANCELED) {
