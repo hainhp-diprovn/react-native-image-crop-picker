@@ -766,8 +766,8 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         if (extension.equals("webp")) {
             try {
                 Bitmap bmp = MediaStore.Images.Media.getBitmap(cr, uri);
-                // ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                // bmp.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                bmp.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
                 // String path = MediaStore.Images.Media.insertImage(cr, bmp, "Jpeg image", null);
                 // newuri =  Uri.parse(path);
                 newuri =  bitmapToUriConverter(activity, bmp);
